@@ -38,10 +38,10 @@ ParseParagraphsResult parseParagraphs(
 ) {
   String? filename = '';
   final List<int> chapterIndexes = [];
+  List<dom.Element> elmList = [];
   final paragraphs = chapters.fold<List<Paragraph>>(
     [],
     (acc, next) {
-      List<dom.Element> elmList = [];
       if (filename != next.ContentFileName) {
         filename = next.ContentFileName;
         final document = EpubCfiReader().chapterDocument(next);
