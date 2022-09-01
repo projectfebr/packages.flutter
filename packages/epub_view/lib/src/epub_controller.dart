@@ -61,7 +61,8 @@ class EpubController {
         chapter: _epubViewState?._currentValue?.chapter,
         paragraphIndex: _epubViewState?._getAbsParagraphIndexBy(
           positionIndex: _epubViewState?._currentValue?.position.index ?? 0,
-          trailingEdge: _epubViewState?._currentValue?.position.itemTrailingEdge,
+          trailingEdge:
+              _epubViewState?._currentValue?.position.itemTrailingEdge,
           leadingEdge: _epubViewState?._currentValue?.position.itemLeadingEdge,
         ),
       );
