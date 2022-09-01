@@ -341,10 +341,20 @@ class _EpubViewState extends State<EpubView> {
           customRenders: {
             tagMatcher('img'): CustomRender.widget(widget: (context, buildChildren) {
               final url = context.tree.element!.attributes['src']!.replaceAll('../', '');
-              return Image(
-                image: MemoryImage(
-                  Uint8List.fromList(
-                    document.Content!.Images![url]!.Content!,
+              context.tree.element!.parent!.attributes['style'] =
+                  'text-align: center; width = 100%';
+              // 'display: block; text-align: center;';
+              // context.tree.element!.attributes['style'] =
+              //     'display: block; margin-left: auto; margin-right: auto;';
+              // context.tree.element!.attributes['style'] = 'style: align-content-center';
+              // context.tree.style.alignment = Alignment.center;
+              // context.style.alignment = Alignment.center;
+              return Center(
+                child: Image(
+                  image: MemoryImage(
+                    Uint8List.fromList(
+                      document.Content!.Images![url]!.Content!,
+                    ),
                   ),
                 ),
               );
