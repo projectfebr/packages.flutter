@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:epub_view/src/data/epub_cfi_reader.dart';
 import 'package:html/dom.dart' as dom;
 
@@ -28,7 +29,6 @@ List<dom.Element> _removeAllDiv(List<dom.Element> elements) {
       result.add(node);
     }
   }
-
   return result;
 }
 
@@ -36,54 +36,46 @@ ParseParagraphsResult parseParagraphs(
   List<EpubChapter> chapters,
   EpubContent? content,
 ) {
-  String? filename = '';
   final List<int> chapterIndexes = [];
   List<dom.Element> elmList = [];
-  final paragraphs = chapters.fold<List<Paragraph>>(
-    [],
-    (acc, next) {
-      if (filename != next.ContentFileName) {
-        filename = next.ContentFileName;
-        final document = EpubCfiReader().chapterDocument(next);
-        if (document != null) {
-          final result = convertDocumentToElements(document);
-          elmList = _removeAllDiv(result);
-        }
-      }
+  var lastIndex = 0;
 
-      if (next.Anchor == null) {
-        // last element from document index as chapter index
-        chapterIndexes.add(acc.length);
-        acc.addAll(elmList
-            .map((element) => Paragraph(element, chapterIndexes.length - 1)));
-        return acc;
-      } else {
-        final index = elmList.indexWhere(
-          (elm) => elm.outerHtml.contains(
-            'id="${next.Anchor}"',
-          ),
-        );
-        if (index == -1) {
-          chapterIndexes.add(acc.length);
-          acc.addAll(elmList
-              .map((element) => Paragraph(element, chapterIndexes.length - 1)));
-          return acc;
-        }
+  final document = EpubCfiReader().chapterDocument(chapters.first);
+  if (document != null) {
+    final result = convertDocumentToElements(document);
+    elmList = _removeAllDiv(result);
+    lastIndex = elmList.length;
+  }
 
-        chapterIndexes.add(index);
-        acc.addAll(elmList
-            .map((element) => Paragraph(element, chapterIndexes.length - 1)));
-        return acc;
-      }
-    },
-  );
+  for (var chapter in chapters) {
+    int index;
+    if (chapter.Anchor == null) {
+      index = 0;
+    } else {
+      index = elmList.indexWhere(
+        (elm) => elm.outerHtml.contains(
+          'id="${chapter.Anchor}"',
+        ),
+      );
+    }
+    chapterIndexes.add(index);
+  }
 
-  return ParseParagraphsResult(paragraphs, chapterIndexes);
+  final paragraphs = elmList.mapIndexed<Paragraph>((elmIndex, elm) {
+    return Paragraph(
+      elm,
+      chapterIndexes.lastIndexWhere((chapterIndex) => chapterIndex <= elmIndex),
+    );
+  }).toList();
+
+  return ParseParagraphsResult(paragraphs, chapterIndexes, lastIndex);
 }
 
 class ParseParagraphsResult {
-  ParseParagraphsResult(this.flatParagraphs, this.chapterIndexes);
+  ParseParagraphsResult(
+      this.flatParagraphs, this.chapterIndexes, this.lastIndex);
 
   final List<Paragraph> flatParagraphs;
   final List<int> chapterIndexes;
+  final int lastIndex;
 }

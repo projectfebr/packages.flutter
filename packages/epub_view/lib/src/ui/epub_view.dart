@@ -61,7 +61,8 @@ class _EpubViewState extends State<EpubView> {
   EpubCfiReader? _epubCfiReader;
   EpubChapterViewValue? _currentValue;
   final _chapterIndexes = <int>[];
-
+  int _lastIndex = 0;
+  int get lastIndex => _lastIndex;
   EpubController get _controller => widget.controller;
 
   @override
@@ -100,9 +101,11 @@ class _EpubViewState extends State<EpubView> {
       return true;
     }
     _chapters = parseChapters(_controller._document!);
-    final parseParagraphsResult = parseParagraphs(_chapters, _controller._document!.Content);
+    final parseParagraphsResult =
+        parseParagraphs(_chapters, _controller._document!.Content);
     _paragraphs = parseParagraphsResult.flatParagraphs;
     _chapterIndexes.addAll(parseParagraphsResult.chapterIndexes);
+    _lastIndex = parseParagraphsResult.lastIndex;
 
     _epubCfiReader = EpubCfiReader.parser(
       cfiInput: _controller.epubCfi,
@@ -116,7 +119,8 @@ class _EpubViewState extends State<EpubView> {
   }
 
   void _changeListener() {
-    if (_paragraphs.isEmpty || _itemPositionListener!.itemPositions.value.isEmpty) {
+    if (_paragraphs.isEmpty ||
+        _itemPositionListener!.itemPositions.value.isEmpty) {
       return;
     }
     final position = _itemPositionListener!.itemPositions.value.first;
@@ -197,10 +201,12 @@ class _EpubViewState extends State<EpubView> {
       return;
     } else {
       final paragraph = _paragraphByIdRef(hrefIdRef);
-      final chapter = paragraph != null ? _chapters[paragraph.chapterIndex] : null;
+      final chapter =
+          paragraph != null ? _chapters[paragraph.chapterIndex] : null;
 
       if (chapter != null && paragraph != null) {
-        final paragraphIndex = _epubCfiReader?.getParagraphIndexByElement(paragraph.element);
+        final paragraphIndex =
+            _epubCfiReader?.getParagraphIndexByElement(paragraph.element);
         final cfi = _epubCfiReader?.generateCfi(
           book: _controller._document,
           chapter: chapter,
@@ -214,15 +220,18 @@ class _EpubViewState extends State<EpubView> {
     }
   }
 
-  Paragraph? _paragraphByIdRef(String idRef) => _paragraphs.firstWhereOrNull((paragraph) {
+  Paragraph? _paragraphByIdRef(String idRef) =>
+      _paragraphs.firstWhereOrNull((paragraph) {
         if (paragraph.element.id == idRef) {
           return true;
         }
 
-        return paragraph.element.children.isNotEmpty && paragraph.element.children[0].id == idRef;
+        return paragraph.element.children.isNotEmpty &&
+            paragraph.element.children[0].id == idRef;
       });
 
-  EpubChapter? _chapterByFileName(String? fileName) => _chapters.firstWhereOrNull((chapter) {
+  EpubChapter? _chapterByFileName(String? fileName) =>
+      _chapters.firstWhereOrNull((chapter) {
         if (fileName != null) {
           if (chapter.ContentFileName!.contains(fileName)) {
             return true;
@@ -339,26 +348,23 @@ class _EpubViewState extends State<EpubView> {
             ).merge(Style.fromTextStyle(options.textStyle)),
           },
           customRenders: {
-            tagMatcher('img'): CustomRender.widget(widget: (context, buildChildren) {
-              final url = context.tree.element!.attributes['src']!.replaceAll('../', '');
-              context.tree.element!.parent!.attributes['style'] =
-                  'text-align: center; width = 100%';
-              // 'display: block; text-align: center;';
-              // context.tree.element!.attributes['style'] =
-              //     'display: block; margin-left: auto; margin-right: auto;';
-              // context.tree.element!.attributes['style'] = 'style: align-content-center';
-              // context.tree.style.alignment = Alignment.center;
-              // context.style.alignment = Alignment.center;
-              return Center(
-                child: Image(
-                  image: MemoryImage(
-                    Uint8List.fromList(
-                      document.Content!.Images![url]!.Content!,
+            tagMatcher('img'): CustomRender.widget(
+              widget: (context, buildChildren) {
+                final url = context.tree.element!.attributes['src']!
+                    .replaceAll('../', '');
+                context.tree.element!.parent!.attributes['style'] =
+                    'text-align: center; width = 100%';
+                return Center(
+                  child: Image(
+                    image: MemoryImage(
+                      Uint8List.fromList(
+                        document.Content!.Images![url]!.Content!,
+                      ),
                     ),
                   ),
-                ),
-              );
-            }),
+                );
+              },
+            ),
           },
         ),
       ],
