@@ -14,6 +14,7 @@ class EpubController {
   EpubBook? _document;
 
   List<int>? get chapterIndexes => _epubViewState?._chapterIndexes;
+  int get currentIndex => currentValueListenable.value?.position.index ?? 0;
   int get lastIndex => _epubViewState?.lastIndex ?? 0;
 
   EpubChapterViewValue? get currentValue => _epubViewState?._currentValue;
