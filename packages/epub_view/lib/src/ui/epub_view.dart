@@ -7,6 +7,7 @@ import 'package:epub_view/src/data/epub_parser.dart';
 import 'package:epub_view/src/data/models/chapter.dart';
 import 'package:epub_view/src/data/models/chapter_view_value.dart';
 import 'package:epub_view/src/data/models/paragraph.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:photo_view/photo_view.dart';
@@ -319,7 +320,7 @@ class _EpubViewState extends State<EpubView> {
       );
 
   static Widget _chapterBuilder(
-    BuildContext context,
+    BuildContext buildContext,
     EpubViewBuilders builders,
     EpubBook document,
     List<EpubChapter> chapters,
@@ -356,13 +357,30 @@ class _EpubViewState extends State<EpubView> {
                 context.tree.element!.parent!.attributes['style'] =
                     'text-align: center; width = 100%';
                 return Center(
-                  child: PhotoView(
-                    backgroundDecoration:
-                        const BoxDecoration(color: Colors.transparent),
-                    filterQuality: FilterQuality.high,
-                    imageProvider: MemoryImage(
-                      Uint8List.fromList(
-                        document.Content!.Images![url]!.Content!,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        buildContext,
+                        MaterialPageRoute(
+                          builder: (context) => HeroPhotoViewRouteWrapper(
+                            imageProvider: MemoryImage(
+                              Uint8List.fromList(
+                                document.Content!.Images![url]!.Content!,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    child: Hero(
+                      tag: "someTag",
+                      child: Image(
+                        image: MemoryImage(
+                          Uint8List.fromList(
+                            document.Content!.Images![url]!.Content!,
+                          ),
+                        ),
+                        width: MediaQuery.of(buildContext).size.width,
                       ),
                     ),
                   ),
@@ -446,6 +464,46 @@ class _EpubViewState extends State<EpubView> {
       _controller.loadingState.value,
       _buildLoaded,
       _loadingError,
+    );
+  }
+}
+
+class HeroPhotoViewRouteWrapper extends StatelessWidget {
+  const HeroPhotoViewRouteWrapper({
+    super.key,
+    required this.imageProvider,
+    this.backgroundDecoration,
+    this.minScale,
+    this.maxScale,
+  });
+
+  final ImageProvider imageProvider;
+  final BoxDecoration? backgroundDecoration;
+  final dynamic minScale;
+  final dynamic maxScale;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Container(
+          constraints: BoxConstraints.expand(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+          ),
+          child: PhotoView(
+            imageProvider: imageProvider,
+            backgroundDecoration: backgroundDecoration,
+            minScale: minScale,
+            maxScale: maxScale,
+            heroAttributes: const PhotoViewHeroAttributes(tag: "someTag"),
+          ),
+        ),
+        const Positioned(
+          top: 20,
+          child: CupertinoNavigationBarBackButton(),
+        ),
+      ],
     );
   }
 }
