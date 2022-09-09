@@ -9,6 +9,7 @@ import 'package:epub_view/src/data/models/chapter_view_value.dart';
 import 'package:epub_view/src/data/models/paragraph.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 export 'package:epubx/epubx.dart' hide Image;
@@ -355,8 +356,11 @@ class _EpubViewState extends State<EpubView> {
                 context.tree.element!.parent!.attributes['style'] =
                     'text-align: center; width = 100%';
                 return Center(
-                  child: Image(
-                    image: MemoryImage(
+                  child: PhotoView(
+                    backgroundDecoration:
+                        const BoxDecoration(color: Colors.transparent),
+                    filterQuality: FilterQuality.high,
+                    imageProvider: MemoryImage(
                       Uint8List.fromList(
                         document.Content!.Images![url]!.Content!,
                       ),

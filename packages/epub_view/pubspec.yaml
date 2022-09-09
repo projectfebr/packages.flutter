@@ -18,6 +18,7 @@ dependencies:
   scrollable_positioned_list: ^0.3.2
   collection: ^1.16.0
   universal_file: ^1.0.0
+  photo_view: ^0.14.0
 
 dev_dependencies:
   flutter_test:
